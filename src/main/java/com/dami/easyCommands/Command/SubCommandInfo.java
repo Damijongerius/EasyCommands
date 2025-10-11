@@ -1,22 +1,34 @@
 package com.dami.easyCommands.Command;
 
+import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Method;
 
 public class SubCommandInfo {
-    private final Method method;
-    private final Object owner;
-    private final int weight;
-    private final String permission;
-    private final int expectedValues;
 
-    public SubCommandInfo(Method method, Object owner, int weight, String permission, int expectedValues) {
+    private final Method method;
+
+    private final Object owner;
+
+    @Getter
+    private final int weight;
+
+    @Getter
+    private final String permission;
+
+    @Getter
+    private final int maxArgs; //max args
+
+    //tab complete
+
+    public SubCommandInfo(Method method, Object owner, int weight, String permission, int maxArgs) {
         this.method = method;
         this.owner = owner;
         this.weight = weight;
         this.permission = permission;
-        this.expectedValues = expectedValues;
+        this.maxArgs = maxArgs;
     }
 
     public void run(CommandSender commandSender, String[] args){
@@ -29,15 +41,8 @@ public class SubCommandInfo {
         try {
             method.invoke(owner, commandSender, args);
         } catch (Exception e) {
-            e.printStackTrace();
+            Bukkit.getLogger().severe("Error while trying to run command make sure the args CommandSender sender, String[] args are the first two arguments");
         }
     }
 
-    public int getWeight() {
-        return weight;
-    }
-
-    public int getExpectedValues() {
-        return expectedValues;
-    }
 }
