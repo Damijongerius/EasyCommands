@@ -16,8 +16,6 @@ public class CommandNode {
 
     public void insertCommand(String[] path, SubCommandInfo command){
 
-        Bukkit.getLogger().info("Inserting command("+ path.length +"): " + String.join(" ", path));
-
         if(path.length == 0){
             this.subCommandInfo = command;
             return;
@@ -32,9 +30,6 @@ public class CommandNode {
     }
 
     public void runSubCommand(String[] path, CommandSender sender){
-
-        Bukkit.getLogger().info("Running subcommand: " + String.join(" ", path));
-
 
         if(subCommandInfo != null && path.length <= subCommandInfo.getMaxArgs()){
             subCommandInfo.run(sender,path);
@@ -54,7 +49,6 @@ public class CommandNode {
     }
 
     public void insertTabComplete(String[] path, TabCompleteInfo tabComplete) {
-        Bukkit.getLogger().info("Inserting tab complete(" + path.length + "): " + String.join(" ", path));
 
         if (path.length == 0) {
             this.tabCompleteInfo = tabComplete;
@@ -70,9 +64,9 @@ public class CommandNode {
     }
 
     public List<String> getTabComplete(String[] path, CommandSender sender) {
-        Bukkit.getLogger().info("Getting tab complete: " + String.join(" ", path));
+        System.out.println("Getting tab complete: " + String.join(" ", path));
 
-        if (path.length == 0) {
+        if (path.length == 1) {
             if (tabCompleteInfo != null) {
                 return tabCompleteInfo.getTabComplete(sender, path);
             }
@@ -113,6 +107,37 @@ public class CommandNode {
 
     public int getTabCompletePriority() {
         return tabCompleteInfo != null ? tabCompleteInfo.getPriority() : 0;
+    }
+
+    public Map<String,Object> ConvertToObject(){
+        Map<String,Object> result = new HashMap<>();
+
+        if(hasSubCommand()){
+            Map<String,Object> subCommandMap = new HashMap<>();
+            subCommandMap.put("weight", subCommandInfo.getWeight());
+            subCommandMap.put("permission", subCommandInfo.getPermission());
+            subCommandMap.put("maxArgs", subCommandInfo.getMaxArgs());
+            result.put("subCommand", subCommandMap);
+        }
+
+        if(hasTabComplete()){
+            Map<String,Object> tabCompleteMap = new HashMap<>();
+            tabCompleteMap.put("priority", tabCompleteInfo.getPriority());
+            tabCompleteMap.put("permission", tabCompleteInfo.getPermission());
+            tabCompleteMap.put("output", tabCompleteInfo.getTabComplete(null,new String[]{}));
+            result.put("tabComplete", tabCompleteMap);
+        }
+
+        Map<String,Object> children = new HashMap<>();
+        for(Map.Entry<String, CommandNode> entry : nodes.entrySet()){
+            children.put(entry.getKey(), entry.getValue().ConvertToObject());
+        }
+
+        if(!children.isEmpty()){
+            result.put("children", children);
+        }
+
+        return result;
     }
 
 }

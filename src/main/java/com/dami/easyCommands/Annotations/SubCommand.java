@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.TYPE})
 /**
  * Annotation to define a sub-command for a command framework.
  * This annotation is used to mark methods as sub-commands

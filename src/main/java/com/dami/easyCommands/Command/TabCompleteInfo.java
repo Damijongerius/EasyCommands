@@ -37,7 +37,8 @@ public class TabCompleteInfo {
      */
     public List<String> getTabComplete(CommandSender sender, String[] args) {
         // Check permission if specified
-        if (!permission.isEmpty() && !sender.hasPermission(permission)) {
+        if (sender != null && !permission.isEmpty() && !sender.hasPermission(permission)) {
+            System.out.println("Sender lacks permission for tab completion: " + permission);
             return null;
         }
 
@@ -50,7 +51,8 @@ public class TabCompleteInfo {
                 List<String> completions = (List<String>) result;
                 return completions;
             }
-            
+
+            System.out.println("Tab completion method did not return a List<String>");
             return null;
         } catch (Exception e) {
             // Log error but don't crash
