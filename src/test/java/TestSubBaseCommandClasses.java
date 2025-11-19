@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.List;
 
 public class TestSubBaseCommandClasses {
 
@@ -26,22 +27,44 @@ public class TestSubBaseCommandClasses {
 
         subCommand = new ExampleSubCommand();
 
-
+        command.RegisterSubCommandClass(subCommand);
     }
 
     @Test
     public void testSubCommandClasses() {
 
         try {
-            command.onCommand(new ExampleSender(), new ExampleComand("amazing"), "amazing", new String[]{"subexample"});
+            command.onCommand(new ExampleSender(), new ExampleComand("amazing"), "amazing", new String[]{"admin","unalive"});
         } finally {
             System.setOut(originalOut);
         }
 
         String output = baos.toString();
 
+        System.out.println("the output is:");
         System.out.println(output);
 
-        assert output.contains("Subexample Command Executed");
+        assert output.contains("Example Sub Command Executed");
+    }
+
+    @Test
+    public void testSubCommandClassesSubTab() {
+
+        System.setOut(originalOut);
+
+        List<String> result = command.onTabComplete(new ExampleSender(), new ExampleComand("amazing"), "amazing", new String[]{"admin", ""});
+
+        System.out.println(result);
+        assert result != null && result.size() == 1;
+    }
+
+    @Test
+    public void testSerialization() {
+
+        System.setOut(originalOut);
+
+        System.out.println(command.ConvertToObject());
+
+        assert command.ConvertToObject() != null;
     }
 }

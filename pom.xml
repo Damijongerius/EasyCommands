@@ -6,7 +6,7 @@
 
     <groupId>com.github.Damijongerius</groupId>
     <artifactId>easycommands</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.5</version>
     <packaging>jar</packaging>
 
     <name>EasyCommands</name>
@@ -79,10 +79,6 @@
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
@@ -114,13 +110,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.11.0-M2</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockbukkit.mockbukkit</groupId>
-            <artifactId>mockbukkit-v1.21</artifactId>
-            <version>4.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

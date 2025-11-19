@@ -33,7 +33,7 @@ public class SubCommandInfo {
 
     public void run(CommandSender commandSender, String[] args){
 
-        if(!commandSender.hasPermission(permission)){
+        if(!commandSender.hasPermission(permission) && !permission.isEmpty()){
             commandSender.sendMessage("§cYou don't have permission to use this command.");
             return;
         }
@@ -41,7 +41,7 @@ public class SubCommandInfo {
         try {
             method.invoke(owner, commandSender, args);
         } catch (Exception e) {
-            Bukkit.getLogger().severe("Error while trying to run command make sure the args CommandSender sender, String[] args are the first two arguments");
+            System.out.println("Error while trying to run command make sure the args CommandSender sender, String[] args are the first two arguments");
         }
     }
 

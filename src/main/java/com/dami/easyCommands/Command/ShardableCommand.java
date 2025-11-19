@@ -47,12 +47,17 @@ public abstract class ShardableCommand extends BaseCommand {
                 Stream.of(subCommandClassContext.name())
         ).toArray(String[]::new);
 
-        try{
-            Method mainCommand = commandClass.getClass().getDeclaredMethod("mainCommand");
+        Method mainMethod = null;
+        for (Method declaredMethod : commandClass.getClass().getDeclaredMethods()) {
+            if(declaredMethod.getName().equals("mainCommand")){
+                mainMethod = declaredMethod;
 
-            insertCommand(basePath, mainCommand, subCommandClassContext, commandClass);
-        }catch (NoSuchMethodException e){
-            //ignore
+                insertCommand(basePath, mainMethod, subCommandClassContext, commandClass);
+                break;
+            }
+        }
+
+        if(mainMethod == null){
             throw new IllegalArgumentException("The class " + commandClass.getClass().getName() + " has no main method");
         }
 
@@ -84,13 +89,18 @@ public abstract class ShardableCommand extends BaseCommand {
                 Stream.of(subCommandClassContext.name())
         ).toArray(String[]::new);
 
-        try{
-            Method tabCompleteMethod = commandClass.getClass().getDeclaredMethod("tabComplete");
+        Method tabComplete = null;
 
-            insertTabComplete(basePath, tabCompleteMethod, commandClass, subCommandClassContext.permission(), 100);
-        }catch (NoSuchMethodException e){
-            //ignore
-            throw new IllegalArgumentException("The class " + commandClass.getClass().getName() + " has no main tab method");
+        for(Method declaredMethod : commandClass.getClass().getDeclaredMethods()){
+            if(declaredMethod.getName().equals("tabComplete")){
+                tabComplete = declaredMethod;
+                insertTabComplete(basePath, tabComplete, commandClass, subCommandClassContext.permission(), 100);
+                break;
+            }
+        }
+
+        if(tabComplete == null){
+            throw new IllegalArgumentException("The class " + commandClass.getClass().getName() + " has no tabComplete method");
         }
 
         //get all methods in the class

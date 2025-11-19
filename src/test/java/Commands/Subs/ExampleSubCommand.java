@@ -21,12 +21,12 @@ public class ExampleSubCommand implements ICommand {
 
     @Override
     public void mainCommand(CommandSender sender, String[] args) {
-
+        System.out.println("ExampleSubCommand mainCommand executed");
     }
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        return List.of("null");
+        return List.of("unalive");
     }
 
     @Override
