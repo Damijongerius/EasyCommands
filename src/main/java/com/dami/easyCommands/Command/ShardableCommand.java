@@ -12,11 +12,11 @@ import java.util.stream.Stream;
 
 public abstract class ShardableCommand extends BaseCommand {
 
-    //this list contains the  class name of registered subcommand classes
+    //this list contains the class name of registered subcommand classes
     protected final List<String> registeredSubCommandClasses = new ArrayList<>();
 
-    protected ShardableCommand(Plugin plugin) {
-        super(plugin);
+    protected ShardableCommand() {
+        super();
     }
 
     public void RegisterSubCommandClass(ICommand command){

@@ -1,4 +1,4 @@
-package Helpers;
+package com.dami.easyCommands.mocks;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
@@ -10,28 +10,39 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class ExampleSender implements CommandSender {
+public class MockCommandSender implements CommandSender {
+    private final List<String> messages = new ArrayList<>();
+
+    public List<String> getMessages() {
+        return messages;
+    }
+
     @Override
     public void sendMessage(@NotNull String s) {
-
+        messages.add(s);
+        System.out.println("SENDER: " + s);
     }
 
     @Override
     public void sendMessage(@NotNull String... strings) {
-
+        for (String s : strings) {
+            sendMessage(s);
+        }
     }
 
     @Override
     public void sendMessage(@Nullable UUID uuid, @NotNull String s) {
-
+        sendMessage(s);
     }
 
     @Override
     public void sendMessage(@Nullable UUID uuid, @NotNull String... strings) {
-
+        sendMessage(strings);
     }
 
     @Override
@@ -41,7 +52,7 @@ public class ExampleSender implements CommandSender {
 
     @Override
     public @NotNull String getName() {
-        return "";
+        return "MockSender";
     }
 
     @Override
@@ -51,27 +62,27 @@ public class ExampleSender implements CommandSender {
 
     @Override
     public @NotNull Component name() {
-        return null;
+        return Component.text(getName());
     }
 
     @Override
     public boolean isPermissionSet(@NotNull String s) {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isPermissionSet(@NotNull Permission permission) {
-        return false;
+        return true;
     }
 
     @Override
     public boolean hasPermission(@NotNull String s) {
-        return false;
+        return true;
     }
 
     @Override
     public boolean hasPermission(@NotNull Permission permission) {
-        return false;
+        return true;
     }
 
     @Override
@@ -111,7 +122,7 @@ public class ExampleSender implements CommandSender {
 
     @Override
     public boolean isOp() {
-        return false;
+        return true;
     }
 
     @Override

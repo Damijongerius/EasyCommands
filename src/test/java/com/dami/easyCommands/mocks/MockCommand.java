@@ -1,12 +1,12 @@
-package Helpers;
+package com.dami.easyCommands.mocks;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public class ExampleComand extends Command {
+public class MockCommand extends Command {
 
-    public ExampleComand(@NotNull String name) {
+    public MockCommand(@NotNull String name) {
         super(name);
     }
 

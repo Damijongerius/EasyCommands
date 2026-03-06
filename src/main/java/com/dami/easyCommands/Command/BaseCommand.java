@@ -19,16 +19,10 @@ import static java.lang.System.arraycopy;
 
 public abstract class BaseCommand implements TabExecutor, ICommand {
 
-    /**
-     * The plugin instance
-     */
-    protected final Plugin plugin;
-
     //this hashmap contains all the subcommands wit the possible executes
     protected final HashMap<String, CommandNode> root = new HashMap<>();
 
-    protected BaseCommand(Plugin plugin) {
-        this.plugin = plugin;
+    protected BaseCommand() {
 
         //check if the name is set
         if(getName() == null){
@@ -40,21 +34,6 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
 
         // get the TabComplete Methods in the class
         collectTabCompleteMethods(this);
-
-        if(plugin == null){
-            System.out.println("Plugin is null for command: " + getName());
-            System.out.println("This class can now only be used for unit testing otherwise not");
-            return;
-        }
-
-        PluginCommand pluginCommand = plugin.getServer().getPluginCommand(getName());
-
-        if (pluginCommand == null) {
-            throw new IllegalArgumentException("No command found for name: " + getName() + " in plugin.yml");
-        }
-
-        //set the executor
-        pluginCommand.setExecutor(this);
 
     }
 

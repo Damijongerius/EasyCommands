@@ -1,4 +1,4 @@
-package Commands.Subs;
+package com.dami.easyCommands.commands;
 
 import com.dami.easyCommands.Annotations.SubCommand;
 import com.dami.easyCommands.Command.ICommand;
@@ -11,7 +11,7 @@ public class ExampleSubCommand implements ICommand {
 
     @SubCommand(commandPath = {}, name = "unalive")
     public void uninstallLife(CommandSender sender, String[] args) {
-        System.out.println("Example Sub Command Executed");
+        sender.sendMessage("Example Sub Command Executed");
     }
 
     @Override
@@ -21,7 +21,7 @@ public class ExampleSubCommand implements ICommand {
 
     @Override
     public void mainCommand(CommandSender sender, String[] args) {
-        System.out.println("ExampleSubCommand mainCommand executed");
+        sender.sendMessage("ExampleSubCommand mainCommand executed");
     }
 
     @Override
