@@ -33,4 +33,9 @@ public @interface SubCommandTab {
      * Priority for this tab completion (higher = more priority)
      */
     int priority() default 0;
+
+    /**
+     * Reusable tab completion name from TabRegistry
+     */
+    String suggestion() default "";
 }

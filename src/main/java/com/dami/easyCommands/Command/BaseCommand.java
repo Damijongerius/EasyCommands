@@ -82,7 +82,7 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
         //get the command node
         CommandNode commandNode = root.computeIfAbsent(path[0], k -> new CommandNode());
 
-        SubCommandInfo command = new SubCommandInfo(method, owner, sub.weight(), sub.permission(), sub.maxArgs());
+        SubCommandInfo command = new SubCommandInfo(method, owner, sub.weight(), sub.permission(), sub.maxArgs(), sub.description(), sub.usage());
 
         String[] newPath = new String[path.length - 1];
         arraycopy(path, 1, newPath, 0, path.length - 1);
@@ -95,7 +95,7 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
         //get the command node
         CommandNode commandNode = root.computeIfAbsent(path[0], k -> new CommandNode());
 
-        TabCompleteInfo tabComplete = new TabCompleteInfo(method, owner, tab.permission(), tab.priority());
+        TabCompleteInfo tabComplete = new TabCompleteInfo(method, owner, tab.permission(), tab.priority(), tab.suggestion());
 
         String[] newPath = new String[path.length - 1];
         arraycopy(path, 1, newPath, 0, path.length - 1);
@@ -108,7 +108,7 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
         //get the command node
         CommandNode commandNode = root.computeIfAbsent(path[0], k -> new CommandNode());
 
-        TabCompleteInfo tabComplete = new TabCompleteInfo(method, owner, tabPermission, tabPriority);
+        TabCompleteInfo tabComplete = new TabCompleteInfo(method, owner, tabPermission, tabPriority, "");
 
         String[] newPath = new String[path.length - 1];
         arraycopy(path, 1, newPath, 0, path.length - 1);
@@ -125,23 +125,53 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
             return true;
         }
 
-        if(args.length == 0){
-            sender.sendMessage("Please provide a command:" + root.keySet());
-            return false;
+        if (args.length == 0) {
+            showHelp(sender);
+            return true;
         }
 
         //get the command node
         CommandNode commandNode = root.get(args[0]);
 
         if(commandNode == null){
-            return false;
+            String closest = com.dami.easyCommands.Util.StringUtil.findClosestMatch(args[0], root.keySet());
+            if (closest != null) {
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<red>Unknown subcommand '<yellow>" + args[0] + "</yellow>'. Did you mean '<yellow>" + closest + "</yellow>'?");
+            } else {
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<red>Unknown subcommand '<yellow>" + args[0] + "</yellow>'.");
+                showHelp(sender);
+            }
+            return true;
         }
 
         String[] newPath = new String[args.length - 1];
         arraycopy(args, 1, newPath, 0, args.length - 1);
-        commandNode.runSubCommand(newPath, sender);
+        commandNode.runSubCommand(newPath, sender, "/" + getName() + " " + args[0]);
 
         return true;
+    }
+
+    private void showHelp(CommandSender sender) {
+        com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<gray>Available subcommands for <gold>/" + getName() + "</gold>:");
+        for (Map.Entry<String, CommandNode> entry : root.entrySet()) {
+            CommandNode node = entry.getValue();
+
+            if (node.hasSubCommand()) {
+                String perm = node.getSubCommandPermission();
+                if (!perm.isEmpty() && !sender.hasPermission(perm)) continue;
+
+                String desc = node.getSubCommandDescription();
+                String usage = node.getSubCommandUsage();
+
+                String helpMsg = "<yellow> - " + entry.getKey() + "</yellow>";
+                if (desc != null && !desc.isEmpty()) helpMsg += " <gray>(" + desc + ")</gray>";
+                if (usage != null && !usage.isEmpty()) helpMsg += " <dark_gray>Usage: " + usage + "</dark_gray>";
+
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, helpMsg);
+            } else {
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<yellow> - " + entry.getKey() + " ...</yellow>");
+            }
+        }
     }
 
     @Override

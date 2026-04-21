@@ -21,11 +21,19 @@ public class TabCompleteInfo {
     @Getter
     private final int priority;
 
+    @Getter
+    private final String suggestion;
+
     public TabCompleteInfo(Method method, Object owner, String permission, int priority) {
+        this(method, owner, permission, priority, "");
+    }
+
+    public TabCompleteInfo(Method method, Object owner, String permission, int priority, String suggestion) {
         this.method = method;
         this.owner = owner;
         this.permission = permission;
         this.priority = priority;
+        this.suggestion = suggestion;
     }
 
     /**
@@ -38,9 +46,14 @@ public class TabCompleteInfo {
     public List<String> getTabComplete(CommandSender sender, String[] args) {
         // Check permission if specified
         if (sender != null && !permission.isEmpty() && !sender.hasPermission(permission)) {
-            System.out.println("Sender lacks permission for tab completion: " + permission);
             return null;
         }
+
+        if (suggestion != null && !suggestion.isEmpty()) {
+            return TabRegistry.getCompletions(suggestion, sender, args);
+        }
+
+        if (method == null) return null;
 
         try {
             // Invoke the tab completion method
@@ -52,11 +65,9 @@ public class TabCompleteInfo {
                 return completions;
             }
 
-            System.out.println("Tab completion method did not return a List<String>");
             return null;
         } catch (Exception e) {
             // Log error but don't crash
-            System.err.println("Error executing tab completion method: " + e.getMessage());
             return null;
         }
     }

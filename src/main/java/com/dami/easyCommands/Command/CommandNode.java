@@ -29,22 +29,58 @@ public class CommandNode {
         commandNode.insertCommand(newPath, command);
     }
 
-    public void runSubCommand(String[] path, CommandSender sender){
+    public void runSubCommand(String[] path, CommandSender sender, String fullPath) {
 
-        if(subCommandInfo != null && path.length <= subCommandInfo.getMaxArgs()){
-            subCommandInfo.run(sender,path);
+        if (subCommandInfo != null && (nodes.isEmpty() || path.length <= subCommandInfo.getMaxArgs())) {
+            subCommandInfo.run(sender, path);
+            return;
+        }
+
+        if (path.length == 0) {
+            showHelp(sender, fullPath);
             return;
         }
 
         String node = path[0];
         CommandNode commandNode = nodes.get(node);
 
-        if(commandNode != null){
+        if (commandNode != null) {
             String[] newPath = new String[path.length - 1];
             System.arraycopy(path, 1, newPath, 0, path.length - 1);
-            commandNode.runSubCommand(newPath, sender);
+            commandNode.runSubCommand(newPath, sender, fullPath + " " + node);
         } else {
-            sender.sendMessage("No command found");
+            String closest = com.dami.easyCommands.Util.StringUtil.findClosestMatch(node, nodes.keySet());
+            if (closest != null) {
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<red>Unknown subcommand '<yellow>" + node + "</yellow>'. Did you mean '<yellow>" + closest + "</yellow>'?");
+            } else {
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<red>Unknown subcommand '<yellow>" + node + "</yellow>'.");
+                showHelp(sender, fullPath);
+            }
+        }
+    }
+
+    public void showHelp(CommandSender sender, String currentPath) {
+        if (nodes.isEmpty()) return;
+
+        com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<gray>Available subcommands for <gold>" + currentPath + "</gold>:");
+        for (Map.Entry<String, CommandNode> entry : nodes.entrySet()) {
+            CommandNode node = entry.getValue();
+            if (node.subCommandInfo != null) {
+                String perm = node.subCommandInfo.getPermission();
+                if (!perm.isEmpty() && !sender.hasPermission(perm)) continue;
+
+                String desc = node.subCommandInfo.getDescription();
+                String usage = node.subCommandInfo.getUsage();
+
+                String helpMsg = "<yellow> - " + entry.getKey() + "</yellow>";
+                if (!desc.isEmpty()) helpMsg += " <gray>(" + desc + ")</gray>";
+                if (!usage.isEmpty()) helpMsg += " <dark_gray>Usage: " + usage + "</dark_gray>";
+
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, helpMsg);
+            } else {
+                // If it's just a branch node without its own command info
+                com.dami.easyCommands.Util.MessageUtil.sendMessage(sender, "<yellow> - " + entry.getKey() + " ...</yellow>");
+            }
         }
     }
 
@@ -64,8 +100,6 @@ public class CommandNode {
     }
 
     public List<String> getTabComplete(String[] path, CommandSender sender) {
-        System.out.println("Getting tab complete: " + String.join(" ", path));
-
         if (path.length == 1) {
             if (tabCompleteInfo != null) {
                 return tabCompleteInfo.getTabComplete(sender, path);
@@ -105,6 +139,18 @@ public class CommandNode {
         return subCommandInfo != null ? subCommandInfo.getWeight() : 0;
     }
 
+    public String getSubCommandPermission() {
+        return subCommandInfo != null ? subCommandInfo.getPermission() : "";
+    }
+
+    public String getSubCommandDescription() {
+        return subCommandInfo != null ? subCommandInfo.getDescription() : "";
+    }
+
+    public String getSubCommandUsage() {
+        return subCommandInfo != null ? subCommandInfo.getUsage() : "";
+    }
+
     public int getTabCompletePriority() {
         return tabCompleteInfo != null ? tabCompleteInfo.getPriority() : 0;
     }
@@ -124,7 +170,11 @@ public class CommandNode {
             Map<String,Object> tabCompleteMap = new HashMap<>();
             tabCompleteMap.put("priority", tabCompleteInfo.getPriority());
             tabCompleteMap.put("permission", tabCompleteInfo.getPermission());
-            tabCompleteMap.put("output", tabCompleteInfo.getTabComplete(null,new String[]{}));
+            try {
+                tabCompleteMap.put("output", tabCompleteInfo.getTabComplete(null, new String[]{}));
+            } catch (Exception e) {
+                tabCompleteMap.put("output", "Error: " + e.getMessage());
+            }
             result.put("tabComplete", tabCompleteMap);
         }
 

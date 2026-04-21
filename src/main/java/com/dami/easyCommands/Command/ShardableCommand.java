@@ -22,7 +22,7 @@ public abstract class ShardableCommand extends BaseCommand {
     public void RegisterSubCommandClass(ICommand command){
 
         if(registeredSubCommandClasses.contains(command.getClass().getName())){
-            System.out.println("ignoring already registered subcommand class: " + command.getClass().getName()); //todo implement logger
+            org.bukkit.Bukkit.getLogger().warning("ignoring already registered subcommand class: " + command.getClass().getName());
             return;
         }
 
