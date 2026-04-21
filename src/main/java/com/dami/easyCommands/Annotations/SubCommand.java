@@ -27,6 +27,16 @@ public @interface SubCommand {
      */
     String name();
 
+    /**
+     * The command description
+     */
+    String description() default "";
+
+    /**
+     * The command usage
+     */
+    String usage() default "";
+
     int maxArgs() default 0;
 
     /**
