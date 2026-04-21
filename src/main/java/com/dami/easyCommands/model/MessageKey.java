@@ -1,0 +1,16 @@
+package com.dami.easyCommands.model;
+
+public enum MessageKey {
+    NO_PERMISSION,
+    PLAYER_ONLY,
+    CONSOLE_ONLY,
+    COMMAND_NOT_FOUND,
+    INVALID_USAGE,
+    HELP_HEADER,
+    HELP_FOOTER,
+    HELP_COMMAND_FORMAT,
+    INVALID_ARGUMENT,
+    MIN_VALUE,
+    MAX_VALUE,
+    DID_YOU_MEAN
+}
