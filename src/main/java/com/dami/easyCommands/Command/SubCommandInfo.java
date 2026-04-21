@@ -21,27 +21,36 @@ public class SubCommandInfo {
     @Getter
     private final int maxArgs; //max args
 
+    @Getter
+    private final String description;
+
+    @Getter
+    private final String usage;
+
     //tab complete
 
-    public SubCommandInfo(Method method, Object owner, int weight, String permission, int maxArgs) {
+    public SubCommandInfo(Method method, Object owner, int weight, String permission, int maxArgs, String description, String usage) {
         this.method = method;
         this.owner = owner;
         this.weight = weight;
         this.permission = permission;
         this.maxArgs = maxArgs;
+        this.description = description;
+        this.usage = usage;
     }
 
     public void run(CommandSender commandSender, String[] args){
 
         if(!commandSender.hasPermission(permission) && !permission.isEmpty()){
-            commandSender.sendMessage("§cYou don't have permission to use this command.");
+            com.dami.easyCommands.Util.MessageUtil.sendMessage(commandSender, "<red>You don't have permission to use this command.");
             return;
         }
 
         try {
             method.invoke(owner, commandSender, args);
         } catch (Exception e) {
-            System.out.println("Error while trying to run command make sure the args CommandSender sender, String[] args are the first two arguments");
+            Bukkit.getLogger().severe("Error while trying to run command: " + e.getMessage());
+            Bukkit.getLogger().severe("Make sure the method " + method.getName() + " in " + owner.getClass().getName() + " has the signature (CommandSender, String[])");
         }
     }
 
