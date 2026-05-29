@@ -24,9 +24,25 @@ public class MyPluginCommand extends ShardableCommand {
 
 Now, if a player types your base command (e.g., `/myplugin`) without any arguments, a Chest GUI opens automatically, displaying an item for every single registered subcommand they have permission to see.
 
-## 2. Customizing Icons (`@GuiIcon`)
+### Layout Strategies
+You can customize the layout of the GUI by passing a title and a `GuiLayout` strategy:
+```java
+this.enableAutoGui("§8⚙️ Admin Panel", GuiLayout.PADDED); 
+// PADDED leaves an empty slot between every item! 
+// Other options: DEFAULT, BORDER
+```
 
-By default, the framework assigns a random ore or ingot material (Diamond, Emerald, Redstone, etc.) to each subcommand. To explicitly set the material icon for a specific subcommand, use the `@GuiIcon` annotation.
+## 2. Hardcoding Positions (`@GuiSlot`)
+While layouts handle dynamic placing, you can force specific commands to always appear in exact slots using the `@GuiSlot` annotation!
+```java
+@SubCommand(commandPath = {}, name = "reload")
+@GuiSlot(row = 1, col = 5) // Pins the item directly in the top-middle slot!
+public void reloadCommand(Player player) { ... }
+```
+
+## 3. Customizing Icons (`@GuiIcon`)
+
+By default, the framework assigns a consistent random ore or ingot material based on the command's name. To explicitly set the material icon for a specific subcommand, use the `@GuiIcon` annotation.
 
 ```java
 import com.dami.easyCommands.annotations.GuiIcon;
@@ -44,7 +60,11 @@ public void viewStats(Player player) {
 }
 ```
 
-### What Happens When Clicked?
-When a player clicks the Diamond Sword in the chest menu, the framework instantly closes the GUI and executes `/myplugin stats` on behalf of the player!
+## 4. Visual Locks (`@Require`)
+If a command is protected by a `@Require` annotation, the GUI will test the condition before rendering. If the player fails the requirement, the item won't be hidden—instead, it transforms into a **BARRIER** block with a lore tag: `§c🔒 Locked: [Condition]`. This is a fantastic way to tease premium commands!
 
-*Note: The Auto-GUI engine automatically respects pagination. If you have more than 45 subcommands, "Next Page" and "Previous Page" arrows are automatically injected into the bottom corners of the chest.*
+## 5. Interactive Argument Sub-Menus
+What happens if a player clicks a command in the GUI that requires arguments (e.g. `/ban <player>`)? 
+Instead of instantly throwing an error, the Auto-GUI engine automatically queries the `CompletionResolver`! 
+If tab completions exist for that argument, it **seamlessly opens a brand new Sub-Menu GUI** filled with the completion options (like a list of online players) for the user to click.
+If no completions exist, it falls back to the **Interactive Chat Prompt**, allowing them to type the missing arguments directly in chat!

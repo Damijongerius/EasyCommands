@@ -18,6 +18,7 @@ import java.util.Map;
 
 public class SubCommandInfo {
 
+    @Getter
     private final Method method;
     private final Object owner;
 
@@ -44,6 +45,12 @@ public class SubCommandInfo {
 
     @Getter
     private final String guiIconMaterial;
+
+    @Getter
+    private final int guiRow;
+
+    @Getter
+    private final int guiCol;
 
     @Getter
     private final String[] completions;
@@ -91,6 +98,15 @@ public class SubCommandInfo {
             this.guiIconMaterial = method.getAnnotation(GuiIcon.class).material();
         } else {
             this.guiIconMaterial = "";
+        }
+        
+        if (method.isAnnotationPresent(com.dami.easyCommands.annotations.GuiSlot.class)) {
+            com.dami.easyCommands.annotations.GuiSlot guiSlot = method.getAnnotation(com.dami.easyCommands.annotations.GuiSlot.class);
+            this.guiRow = guiSlot.row();
+            this.guiCol = guiSlot.col();
+        } else {
+            this.guiRow = -1;
+            this.guiCol = -1;
         }
         
         String[] combinedCompletions = completions != null ? completions : new String[0];
@@ -199,7 +215,29 @@ public class SubCommandInfo {
             if (e.getPlaceholders() != null) {
                 mergedPlaceholders.putAll(e.getPlaceholders());
             }
-            messageHandler.sendMessage(commandSender, e.getMessageKey(), mergedPlaceholders);
+            if (messageHandler instanceof com.dami.easyCommands.core.MessageHandler.DefaultMessageHandler) {
+                com.dami.easyCommands.core.MessageHandler.DefaultMessageHandler defaultHandler = (com.dami.easyCommands.core.MessageHandler.DefaultMessageHandler) messageHandler;
+                String rawMsg = defaultHandler.getRawMessage(e.getMessageKey());
+                if (rawMsg == null) rawMsg = "Message not found: " + e.getMessageKey();
+                
+                net.kyori.adventure.text.minimessage.tag.resolver.TagResolver.Builder resolverBuilder = net.kyori.adventure.text.minimessage.tag.resolver.TagResolver.builder();
+                for (Map.Entry<String, String> entry : mergedPlaceholders.entrySet()) {
+                    resolverBuilder.resolver(net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed(entry.getKey(), entry.getValue()));
+                }
+                
+                net.kyori.adventure.text.Component component = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(rawMsg, resolverBuilder.build());
+                
+                if (e.getHoverText() != null && !e.getHoverText().isEmpty()) {
+                    component = component.hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(e.getHoverText())));
+                }
+                if (e.getClickActionCommand() != null && !e.getClickActionCommand().isEmpty()) {
+                    component = component.clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand(e.getClickActionCommand()));
+                }
+                
+                commandSender.sendMessage(component);
+            } else {
+                messageHandler.sendMessage(commandSender, e.getMessageKey(), mergedPlaceholders);
+            }
             return;
         } catch (Exception e) {
             e.printStackTrace();
@@ -246,7 +284,31 @@ public class SubCommandInfo {
                 execution.run();
             }
         } catch (ValidationException e) {
-            messageHandler.sendMessage(commandSender, e.getMessageKey(), e.getPlaceholders());
+            if (messageHandler instanceof com.dami.easyCommands.core.MessageHandler.DefaultMessageHandler) {
+                com.dami.easyCommands.core.MessageHandler.DefaultMessageHandler defaultHandler = (com.dami.easyCommands.core.MessageHandler.DefaultMessageHandler) messageHandler;
+                String rawMsg = defaultHandler.getRawMessage(e.getMessageKey());
+                if (rawMsg == null) rawMsg = "Message not found: " + e.getMessageKey();
+                
+                net.kyori.adventure.text.minimessage.tag.resolver.TagResolver.Builder resolverBuilder = net.kyori.adventure.text.minimessage.tag.resolver.TagResolver.builder();
+                if (e.getPlaceholders() != null) {
+                    for (Map.Entry<String, String> entry : e.getPlaceholders().entrySet()) {
+                        resolverBuilder.resolver(net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed(entry.getKey(), entry.getValue()));
+                    }
+                }
+                
+                net.kyori.adventure.text.Component component = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(rawMsg, resolverBuilder.build());
+                
+                if (e.getHoverText() != null && !e.getHoverText().isEmpty()) {
+                    component = component.hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(e.getHoverText())));
+                }
+                if (e.getClickActionCommand() != null && !e.getClickActionCommand().isEmpty()) {
+                    component = component.clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand(e.getClickActionCommand()));
+                }
+                
+                commandSender.sendMessage(component);
+            } else {
+                messageHandler.sendMessage(commandSender, e.getMessageKey(), e.getPlaceholders());
+            }
         } catch (Exception e) {
             System.err.println("Error while trying to run command " + method.getName() + " in " + owner.getClass().getSimpleName());
             if (e.getCause() != null) {

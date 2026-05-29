@@ -96,7 +96,13 @@ public class ParameterResolver {
             if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Flag.class)) continue;
             Class<?> paramType = param.getType();
 
-            if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Sender.class)) {
+            if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Session.class)) {
+                if (sender instanceof Player) {
+                    resolvedArgs[i] = com.dami.easyCommands.internal.SessionManager.getSession(((Player) sender).getUniqueId());
+                } else {
+                    resolvedArgs[i] = com.dami.easyCommands.internal.SessionManager.getSession(java.util.UUID.nameUUIDFromBytes("CONSOLE".getBytes()));
+                }
+            } else if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Sender.class)) {
                 com.dami.easyCommands.model.SenderResolver<?> resolver = senderResolvers.get(paramType);
                 if (resolver != null) {
                     resolvedArgs[i] = resolver.resolve(sender);
