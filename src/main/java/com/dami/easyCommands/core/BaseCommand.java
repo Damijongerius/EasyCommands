@@ -64,12 +64,6 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
         return new ArrayList<>();
     }
 
-    @Override
-    @Deprecated(since = "2.1.0", forRemoval = true)
-    public void showUsage(CommandSender sender) {
-        showHelp(sender);
-    }
-
     public abstract String getName();
 
     protected void collectSubCommands(ICommand commandClass) {
@@ -107,7 +101,7 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
     protected void insertCommand(String[] path,Method method, SubCommand sub, Object owner){
         CommandNode commandNode = root.computeIfAbsent(path[0], k -> new CommandNode());
         SubCommandInfo command = new SubCommandInfo(method, owner, sub.weight(), sub.permission(), sub.maxArgs(), 
-                sub.aliases(), sub.description(), sub.usage(), sub.senderType());
+                sub.aliases(), sub.description(), sub.usage(), sub.senderType(), sub.completions());
         String[] newPath = new String[path.length - 1];
         arraycopy(path, 1, newPath, 0, path.length - 1);
         commandNode.insertCommand(newPath, command);
@@ -143,7 +137,13 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
         if (args.length > 0) {
             String firstArg = args[0];
             if (firstArg.equalsIgnoreCase("help")) {
-                showHelp(sender);
+                int page = 1;
+                if (args.length > 1) {
+                    try {
+                        page = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException ignored) {}
+                }
+                showHelp(sender, page);
                 return true;
             }
             CommandNode commandNode = root.get(firstArg);
@@ -173,7 +173,7 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
                 }
             }
         }
-        if(args.length <= maxArgs()){
+        if (args.length == 0) {
             mainCommand(sender,args);
             return true;
         }
@@ -215,15 +215,47 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
     }
 
     public void showHelp(CommandSender sender) {
-        Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("command", getName());
-        messageHandler.sendMessage(sender, MessageKey.HELP_HEADER, placeholders);
+        showHelp(sender, 1);
+    }
+
+    public void showHelp(CommandSender sender, int page) {
+        List<CommandNode.HelpEntry> entries = new ArrayList<>();
         for (Map.Entry<String, CommandNode> entry : root.entrySet()) {
             if (entry.getKey().equals("*")) continue;
             if (entry.getValue().isAccessible(sender)) {
-                entry.getValue().showHelp(sender, messageHandler, getName(), entry.getKey());
+                entry.getValue().collectHelp(sender, entry.getKey(), entries);
             }
         }
+        
+        int itemsPerPage = 7;
+        int maxPage = (int) Math.ceil(entries.size() / (double) itemsPerPage);
+        if (maxPage == 0) maxPage = 1;
+        
+        if (page < 1) page = 1;
+        if (page > maxPage) page = maxPage;
+
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("command", getName());
+        
+        messageHandler.sendMessage(sender, MessageKey.HELP_HEADER, placeholders);
+
+        int start = (page - 1) * itemsPerPage;
+        int end = Math.min(start + itemsPerPage, entries.size());
+
+        for (int i = start; i < end; i++) {
+            CommandNode.HelpEntry entry = entries.get(i);
+            Map<String, String> cmdPlaceholders = new HashMap<>(placeholders);
+            cmdPlaceholders.put("sub", entry.path);
+            cmdPlaceholders.put("description", entry.description);
+            cmdPlaceholders.put("usage", entry.usage);
+            messageHandler.sendMessage(sender, MessageKey.HELP_COMMAND_FORMAT, cmdPlaceholders);
+        }
+
+        placeholders.put("page", String.valueOf(page));
+        placeholders.put("max_page", String.valueOf(maxPage));
+        placeholders.put("next_page", String.valueOf(page < maxPage ? page + 1 : maxPage));
+        placeholders.put("prev_page", String.valueOf(page > 1 ? page - 1 : 1));
+        
         messageHandler.sendMessage(sender, MessageKey.HELP_FOOTER, placeholders);
     }
 

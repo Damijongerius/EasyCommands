@@ -1,8 +1,8 @@
 package com.dami.easyCommands.commands;
 
-import com.dami.easyCommands.Annotations.SubCommand;
-import com.dami.easyCommands.Annotations.SubCommandTab;
-import com.dami.easyCommands.Command.ShardableCommand;
+import com.dami.easyCommands.annotations.SubCommand;
+import com.dami.easyCommands.annotations.SubCommandTab;
+import com.dami.easyCommands.core.ShardableCommand;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -23,20 +23,14 @@ public class AmazingBaseCommand extends ShardableCommand {
         return List.of("base1", "base2");
     }
 
-    @Override
-    public void showUsage(CommandSender sender) {
 
-    }
 
     @Override
     public String getName() {
         return "amazing";
     }
 
-    @Override
-    public int maxArgs() {
-        return 0;
-    }
+
 
     @SubCommand(commandPath = {}, name = "subexample")
     public void subCommandExample(CommandSender sender, String[] args) {
@@ -56,6 +50,16 @@ public class AmazingBaseCommand extends ShardableCommand {
     @SubCommandTab(commandPath = {}, name = "subexample2")
     public List<String> subCommandExampleTab2(CommandSender sender, String[] args){
         return List.of("one", "two", "three", "four");
+    }
+
+    @SubCommand(commandPath = {"subexample"}, name = "two")
+    public void subCommandExampleTwo(CommandSender sender, String[] args) {
+        sender.sendMessage("Subexample Two Command Executed");
+    }
+
+    @SubCommand(commandPath = {}, name = "testcompletions", completions = {"@test"})
+    public void testCompletionsCommand(CommandSender sender, String arg) {
+        sender.sendMessage("Test Completions Executed: " + arg);
     }
 
     @SubCommand(commandPath = {"subexample"}, name = "one", maxArgs = 2)

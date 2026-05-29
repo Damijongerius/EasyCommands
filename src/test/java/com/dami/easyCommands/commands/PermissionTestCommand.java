@@ -22,19 +22,14 @@ public class PermissionTestCommand extends BaseCommand {
         return List.of();
     }
 
-    @Override
-    public void showUsage(CommandSender sender) {
-    }
+
 
     @Override
     public String getName() {
         return "permissiontest";
     }
 
-    @Override
-    public int maxArgs() {
-        return 0;
-    }
+
 
     @SubCommand(name = "public")
     public void publicCommand(CommandSender sender, String[] args) {

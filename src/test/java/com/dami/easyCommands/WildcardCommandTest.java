@@ -55,18 +55,8 @@ public class WildcardCommandTest {
             }
 
             @Override
-            public void showUsage(CommandSender sender) {
-                sender.sendMessage("Usage: /wild <args>");
-            }
-
-            @Override
             public List<String> tabComplete(CommandSender sender, String[] args) {
                 return new ArrayList<>();
-            }
-
-            @Override
-            public int maxArgs() {
-                return 0;
             }
         };
     }

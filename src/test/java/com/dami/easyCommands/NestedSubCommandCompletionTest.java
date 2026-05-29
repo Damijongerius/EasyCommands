@@ -36,13 +36,7 @@ public class NestedSubCommandCompletionTest {
                 return List.of();
             }
 
-            @Override
-            public void showUsage(CommandSender sender) {}
 
-            @Override
-            public int maxArgs() {
-                return 0;
-            }
         };
         sender = new MockCommandSender();
         bukkitCommand = new MockCommand("root");
@@ -63,11 +57,7 @@ public class NestedSubCommandCompletionTest {
             return List.of("h1", "h2");
         }
 
-        @Override
-        public void showUsage(CommandSender sender) {}
 
-        @Override
-        public int maxArgs() { return 0; }
 
         @SubCommand(commandPath = {}, name = "world")
         public void world(CommandSender sender, String[] args) {}
@@ -88,11 +78,7 @@ public class NestedSubCommandCompletionTest {
             return List.of("c1", "c2");
         }
 
-        @Override
-        public void showUsage(CommandSender sender) {}
 
-        @Override
-        public int maxArgs() { return 0; }
     }
 
     @Test

@@ -16,14 +16,12 @@ public class TestCommand extends BaseCommand {
     }
     @Override
     public String getName() { return "root"; }
-    @Override
-    public int maxArgs() { return 0; }
+
     @Override
     public void mainCommand(CommandSender sender, String[] args) {}
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) { return List.of(); }
-    @Override
-    public void showUsage(CommandSender sender) {}
+
 
     @SubCommand(name = "give", usage = "test give <player> <amount>", description = "Give items")
     public void giveCommand(CommandSender sender, Player target, int amount) {

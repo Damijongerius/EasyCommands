@@ -83,14 +83,14 @@ Add EasyCommands to your project:
 <dependency>
     <groupId>com.dami</groupId>
     <artifactId>easycommands</artifactId>
-    <version>0.0.9</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 
 **Gradle:**
 ```gradle
 dependencies {
-    implementation 'com.dami:easycommands:0.0.9'
+    implementation 'com.dami:easycommands:0.3.1'
 }
 ```
 

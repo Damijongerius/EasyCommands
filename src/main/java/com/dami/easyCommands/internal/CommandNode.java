@@ -13,6 +13,10 @@ public class CommandNode {
     private SubCommandInfo subCommandInfo;
     private TabCompleteInfo tabCompleteInfo;
 
+    public SubCommandInfo getSubCommandInfo() {
+        return subCommandInfo;
+    }
+
     public void insertCommand(String[] path, SubCommandInfo command){
         if(path.length == 0){
             this.subCommandInfo = command;
@@ -30,7 +34,13 @@ public class CommandNode {
     public boolean runSubCommand(String[] path, CommandSender sender, List<String> wildcards, MessageHandler messageHandler, String baseCommandName, String fullPath){
         // Help check
         if (path.length > 0 && path[0].equalsIgnoreCase("help")) {
-            showHelp(sender, messageHandler, baseCommandName, "");
+            int page = 1;
+            if (path.length > 1) {
+                try {
+                    page = Integer.parseInt(path[1]);
+                } catch (NumberFormatException ignored) {}
+            }
+            showHelp(sender, messageHandler, baseCommandName, "", page);
             return true;
         }
 
@@ -71,7 +81,7 @@ public class CommandNode {
 
         // Priority 2: Leaf match or Fallback match (this node has a command)
         if(subCommandInfo != null){
-            subCommandInfo.run(sender, path, wildcards, messageHandler, baseCommandName);
+            subCommandInfo.run(sender, path, wildcards, messageHandler, baseCommandName, fullPath);
             return true;
         }
 
@@ -97,35 +107,71 @@ public class CommandNode {
         return bestMatch;
     }
 
-    public void showHelp(CommandSender sender, MessageHandler messageHandler, String baseCommandName, String currentPath) {
-        Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("command", baseCommandName);
-        
-        if (currentPath.isEmpty()) {
-            messageHandler.sendMessage(sender, MessageKey.HELP_HEADER, placeholders);
-        }
+    public static class HelpEntry {
+        public String path;
+        public String description;
+        public String usage;
 
+        public HelpEntry(String path, String description, String usage) {
+            this.path = path;
+            this.description = description;
+            this.usage = usage;
+        }
+    }
+
+    public void collectHelp(CommandSender sender, String currentPath, List<HelpEntry> entries) {
         if (subCommandInfo != null) {
             String permission = subCommandInfo.getPermission();
             if (permission.isEmpty() || sender.hasPermission(permission)) {
-                Map<String, String> cmdPlaceholders = new HashMap<>(placeholders);
-                cmdPlaceholders.put("sub", currentPath);
-                cmdPlaceholders.put("description", subCommandInfo.getDescription());
-                cmdPlaceholders.put("usage", subCommandInfo.getUsage().isEmpty() ? currentPath : subCommandInfo.getUsage());
-                messageHandler.sendMessage(sender, MessageKey.HELP_COMMAND_FORMAT, cmdPlaceholders);
+                entries.add(new HelpEntry(
+                    currentPath,
+                    subCommandInfo.getDescription(),
+                    subCommandInfo.getUsage().isEmpty() ? currentPath : subCommandInfo.getUsage()
+                ));
             }
         }
-
         for (Map.Entry<String, CommandNode> entry : nodes.entrySet()) {
             if (entry.getValue().isAccessible(sender)) {
                 String nextPath = currentPath.isEmpty() ? entry.getKey() : currentPath + " " + entry.getKey();
-                entry.getValue().showHelp(sender, messageHandler, baseCommandName, nextPath);
+                entry.getValue().collectHelp(sender, nextPath, entries);
             }
         }
+    }
 
-        if (currentPath.isEmpty()) {
-            messageHandler.sendMessage(sender, MessageKey.HELP_FOOTER, placeholders);
+    public void showHelp(CommandSender sender, MessageHandler messageHandler, String baseCommandName, String currentPath, int page) {
+        List<HelpEntry> entries = new ArrayList<>();
+        collectHelp(sender, currentPath, entries);
+
+        int itemsPerPage = 7;
+        int maxPage = (int) Math.ceil(entries.size() / (double) itemsPerPage);
+        if (maxPage == 0) maxPage = 1;
+        
+        if (page < 1) page = 1;
+        if (page > maxPage) page = maxPage;
+
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("command", baseCommandName);
+        
+        messageHandler.sendMessage(sender, MessageKey.HELP_HEADER, placeholders);
+
+        int start = (page - 1) * itemsPerPage;
+        int end = Math.min(start + itemsPerPage, entries.size());
+
+        for (int i = start; i < end; i++) {
+            HelpEntry entry = entries.get(i);
+            Map<String, String> cmdPlaceholders = new HashMap<>(placeholders);
+            cmdPlaceholders.put("sub", entry.path);
+            cmdPlaceholders.put("description", entry.description);
+            cmdPlaceholders.put("usage", entry.usage);
+            messageHandler.sendMessage(sender, MessageKey.HELP_COMMAND_FORMAT, cmdPlaceholders);
         }
+
+        placeholders.put("page", String.valueOf(page));
+        placeholders.put("max_page", String.valueOf(maxPage));
+        placeholders.put("next_page", String.valueOf(page < maxPage ? page + 1 : maxPage));
+        placeholders.put("prev_page", String.valueOf(page > 1 ? page - 1 : 1));
+        
+        messageHandler.sendMessage(sender, MessageKey.HELP_FOOTER, placeholders);
     }
 
     public boolean isAccessible(CommandSender sender) {

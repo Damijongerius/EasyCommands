@@ -1,4 +1,4 @@
-package com.dami.easyCommands.Annotations;
+package com.dami.easyCommands.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,7 +17,7 @@ public @interface SubCommandTab {
     /**
      * The path to get to the command (same format as SubCommand)
      */
-    String[] commandPath();
+    String[] commandPath() default {};
 
     /**
      * The command name for tab completion

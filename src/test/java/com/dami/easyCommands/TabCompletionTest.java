@@ -3,6 +3,7 @@ package com.dami.easyCommands;
 import com.dami.easyCommands.commands.AmazingBaseCommand;
 import com.dami.easyCommands.mocks.MockCommand;
 import com.dami.easyCommands.mocks.MockCommandSender;
+import com.dami.easyCommands.EasyCommands;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,5 +68,16 @@ public class TabCompletionTest {
     public void testInvalidSubCommandTabComplete() {
         List<String> suggestions = command.onTabComplete(sender, bukkitCommand, "amazing", new String[]{"invalid", ""});
         assertNull(suggestions);
+    }
+
+    @Test
+    public void testCustomCompletionsArray() {
+        EasyCommands.registerCompletion("@test", s -> List.of("custom1", "custom2"));
+        
+        List<String> suggestions = command.onTabComplete(sender, bukkitCommand, "amazing", new String[]{"testcompletions", ""});
+        
+        assertNotNull(suggestions);
+        assertTrue(suggestions.contains("custom1"));
+        assertTrue(suggestions.contains("custom2"));
     }
 }

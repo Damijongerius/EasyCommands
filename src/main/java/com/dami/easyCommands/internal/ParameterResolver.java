@@ -22,6 +22,11 @@ import java.util.Map;
 public class ParameterResolver {
 
     private static final Map<Class<?>, TypeConverter<?>> converters = new HashMap<>();
+    private static final Map<Class<?>, com.dami.easyCommands.model.SenderResolver<?>> senderResolvers = new HashMap<>();
+
+    public static <T> void registerSenderResolver(Class<T> clazz, com.dami.easyCommands.model.SenderResolver<T> resolver) {
+        senderResolvers.put(clazz, resolver);
+    }
 
     static {
         registerConverter(String.class, s -> s);
@@ -73,27 +78,46 @@ public class ParameterResolver {
         Parameter[] parameters = method.getParameters();
         Object[] resolvedArgs = new Object[parameters.length];
 
+        java.util.List<String> argsList = new java.util.ArrayList<>(java.util.Arrays.asList(args));
+        for (int i = 0; i < parameters.length; i++) {
+            Parameter param = parameters[i];
+            if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Flag.class)) {
+                String flagVal = param.getAnnotation(com.dami.easyCommands.annotations.Flag.class).value();
+                boolean found = argsList.remove(flagVal);
+                resolvedArgs[i] = found;
+            }
+        }
+
+        String[] positionalArgs = argsList.toArray(new String[0]);
         int argIndex = 0;
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter param = parameters[i];
+            if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Flag.class)) continue;
             Class<?> paramType = param.getType();
 
-            if (CommandSender.class.isAssignableFrom(paramType) && !Player.class.isAssignableFrom(paramType)) {
+            if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Sender.class)) {
+                com.dami.easyCommands.model.SenderResolver<?> resolver = senderResolvers.get(paramType);
+                if (resolver != null) {
+                    resolvedArgs[i] = resolver.resolve(sender);
+                } else {
+                    throw new IllegalArgumentException("No SenderResolver registered for type: " + paramType.getName());
+                }
+            } else if (CommandSender.class.isAssignableFrom(paramType) && !Player.class.isAssignableFrom(paramType)) {
                 resolvedArgs[i] = sender;
             } else if (Player.class.isAssignableFrom(paramType) && i == 0 && sender instanceof Player) {
                 resolvedArgs[i] = (Player) sender;
             } else if (paramType.isArray() && paramType.getComponentType() == String.class) {
-                String[] remainingArgs = new String[Math.max(0, args.length - argIndex)];
+                String[] remainingArgs = new String[Math.max(0, positionalArgs.length - argIndex)];
                 if (remainingArgs.length > 0) {
-                    System.arraycopy(args, argIndex, remainingArgs, 0, args.length - argIndex);
+                    System.arraycopy(positionalArgs, argIndex, remainingArgs, 0, positionalArgs.length - argIndex);
                 }
                 resolvedArgs[i] = remainingArgs;
-                argIndex = args.length;
+                argIndex = positionalArgs.length;
             } else {
                 String value = null;
-                if (argIndex < args.length) {
-                    value = args[argIndex++];
+                if (argIndex < positionalArgs.length) {
+                    value = positionalArgs[argIndex++];
                 } else if (param.isAnnotationPresent(Optional.class)) {
                     value = param.getAnnotation(Optional.class).value();
                 }

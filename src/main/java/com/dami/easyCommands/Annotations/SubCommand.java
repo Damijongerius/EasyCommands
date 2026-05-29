@@ -1,11 +1,10 @@
-package com.dami.easyCommands.Annotations;
+package com.dami.easyCommands.annotations;
 
+import com.dami.easyCommands.model.SenderType;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.HashMap;
-import java.util.List;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
@@ -20,12 +19,17 @@ public @interface SubCommand {
     /**
      * The path to get to the command
      */
-    String[] commandPath();
+    String[] commandPath() default {};
 
     /**
      * The command name
      */
     String name();
+
+    /**
+     * Aliases for this command
+     */
+    String[] aliases() default {};
 
     /**
      * The command description
@@ -37,7 +41,16 @@ public @interface SubCommand {
      */
     String usage() default "";
 
+    /**
+     * The maximum number of arguments allowed
+     */
     int maxArgs() default 0;
+
+    /**
+     * Reusable tab completions for parameters matching the index.
+     * Example: completions = {"@players", "@kingdoms"}
+     */
+    String[] completions() default {};
 
     /**
      * The command Permission
@@ -48,4 +61,9 @@ public @interface SubCommand {
      * Weight to override the default command
      */
     int weight() default 0;
+
+    /**
+     * The type of sender that can use this command
+     */
+    SenderType senderType() default SenderType.ANY;
 }

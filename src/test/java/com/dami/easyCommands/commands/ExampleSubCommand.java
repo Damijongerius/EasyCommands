@@ -1,7 +1,7 @@
 package com.dami.easyCommands.commands;
 
-import com.dami.easyCommands.Annotations.SubCommand;
-import com.dami.easyCommands.Command.ICommand;
+import com.dami.easyCommands.annotations.SubCommand;
+import com.dami.easyCommands.core.ICommand;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -15,9 +15,11 @@ public class ExampleSubCommand implements ICommand {
     }
 
     @Override
-    public int maxArgs() {
-        return 0;
+    public String getName() {
+        return "admin";
     }
+
+
 
     @Override
     public void mainCommand(CommandSender sender, String[] args) {
@@ -29,7 +31,5 @@ public class ExampleSubCommand implements ICommand {
         return List.of("unalive");
     }
 
-    @Override
-    public void showUsage(CommandSender sender) {
-    }
+
 }

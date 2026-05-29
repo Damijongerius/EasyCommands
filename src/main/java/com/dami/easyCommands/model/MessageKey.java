@@ -12,5 +12,7 @@ public enum MessageKey {
     INVALID_ARGUMENT,
     MIN_VALUE,
     MAX_VALUE,
-    DID_YOU_MEAN
+    DID_YOU_MEAN,
+    COOLDOWN_ACTIVE,
+    CONFIRMATION_REQUIRED
 }

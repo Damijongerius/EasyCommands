@@ -1,5 +1,7 @@
 package com.dami.easyCommands.internal;
 
+import com.dami.easyCommands.core.TabRegistry;
+
 import com.dami.easyCommands.annotations.Tab;
 import com.dami.easyCommands.model.CompletionProvider;
 import org.bukkit.Bukkit;
@@ -46,7 +48,7 @@ public class CompletionResolver {
         providers.put(name.toLowerCase(), provider);
     }
 
-    public static List<String> resolve(Method method, CommandSender sender, String[] args, List<String> wildcards) {
+    public static List<String> resolve(Method method, CommandSender sender, String[] args, List<String> wildcards, String[] completions) {
         Parameter[] parameters = method.getParameters();
 
         String[] fullArgs;
@@ -74,26 +76,44 @@ public class CompletionResolver {
             }
             
             if (currentArgIndex == argIndexToFind) {
-                if (param.isAnnotationPresent(Tab.class)) {
+                java.util.List<String> rawCompletions = null;
+                
+                if (completions != null && currentArgIndex < completions.length) {
+                    String providerName = completions[currentArgIndex];
+                    if (providerName != null && !providerName.isEmpty()) {
+                        rawCompletions = TabRegistry.getCompletions(providerName, sender);
+                    }
+                }
+
+                if (rawCompletions == null && param.isAnnotationPresent(Tab.class)) {
                     String providerName = param.getAnnotation(Tab.class).value();
                     CompletionProvider provider = providers.get(providerName.toLowerCase());
                     if (provider != null) {
-                        return provider.getSuggestions(sender, fullArgs);
+                        rawCompletions = provider.getSuggestions(sender, fullArgs);
                     }
                 }
                 
-                if (Player.class.isAssignableFrom(type)) {
-                    return providers.get("players").getSuggestions(sender, fullArgs);
-                } else if (World.class.isAssignableFrom(type)) {
-                    return providers.get("worlds").getSuggestions(sender, fullArgs);
-                } else if (Boolean.class.isAssignableFrom(type) || boolean.class.isAssignableFrom(type)) {
-                    return providers.get("boolean").getSuggestions(sender, fullArgs);
-                } else if (Material.class.isAssignableFrom(type)) {
-                    return providers.get("materials").getSuggestions(sender, fullArgs);
-                } else if (Sound.class.isAssignableFrom(type)) {
-                    return providers.get("sounds").getSuggestions(sender, fullArgs);
-                } else if (EntityType.class.isAssignableFrom(type)) {
-                    return providers.get("entity_types").getSuggestions(sender, fullArgs);
+                if (rawCompletions == null) {
+                    if (Player.class.isAssignableFrom(type)) {
+                        rawCompletions = providers.get("players").getSuggestions(sender, fullArgs);
+                    } else if (World.class.isAssignableFrom(type)) {
+                        rawCompletions = providers.get("worlds").getSuggestions(sender, fullArgs);
+                    } else if (Boolean.class.isAssignableFrom(type) || boolean.class.isAssignableFrom(type)) {
+                        rawCompletions = providers.get("boolean").getSuggestions(sender, fullArgs);
+                    } else if (Material.class.isAssignableFrom(type)) {
+                        rawCompletions = providers.get("materials").getSuggestions(sender, fullArgs);
+                    } else if (Sound.class.isAssignableFrom(type)) {
+                        rawCompletions = providers.get("sounds").getSuggestions(sender, fullArgs);
+                    } else if (EntityType.class.isAssignableFrom(type)) {
+                        rawCompletions = providers.get("entity_types").getSuggestions(sender, fullArgs);
+                    }
+                }
+                
+                if (rawCompletions != null) {
+                    String token = fullArgs[fullArgs.length - 1].toLowerCase();
+                    return rawCompletions.stream()
+                        .filter(s -> s.toLowerCase().startsWith(token))
+                        .collect(Collectors.toList());
                 }
                 
                 return null;

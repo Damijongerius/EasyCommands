@@ -6,7 +6,7 @@
 
     <groupId>com.github.Damijongerius</groupId>
     <artifactId>easycommands</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.1</version>
     <packaging>jar</packaging>
 
     <name>EasyCommands</name>
@@ -98,6 +98,12 @@
             <artifactId>adventure-text-minimessage</artifactId>
             <version>4.17.0</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>dev.triumphteam</groupId>
+            <artifactId>triumph-gui</artifactId>
+            <version>3.1.10</version>
         </dependency>
 
         <dependency>

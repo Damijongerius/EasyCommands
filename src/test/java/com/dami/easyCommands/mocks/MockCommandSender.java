@@ -17,6 +17,20 @@ import java.util.UUID;
 
 public class MockCommandSender implements CommandSender {
     private final List<String> messages = new ArrayList<>();
+    private final Set<String> permissions = new java.util.HashSet<>();
+    private String name = "MockSender";
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void addPermission(String permission) {
+        permissions.add(permission);
+    }
+
+    public void clearPermissions() {
+        permissions.clear();
+    }
 
     public List<String> getMessages() {
         return messages;
@@ -33,6 +47,11 @@ public class MockCommandSender implements CommandSender {
         for (String s : strings) {
             sendMessage(s);
         }
+    }
+
+    public void sendMessage(@NotNull Component component) {
+        String legacy = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(component);
+        sendMessage(legacy);
     }
 
     @Override
@@ -52,7 +71,7 @@ public class MockCommandSender implements CommandSender {
 
     @Override
     public @NotNull String getName() {
-        return "MockSender";
+        return name;
     }
 
     @Override
@@ -77,12 +96,12 @@ public class MockCommandSender implements CommandSender {
 
     @Override
     public boolean hasPermission(@NotNull String s) {
-        return true;
+        return permissions.contains(s);
     }
 
     @Override
     public boolean hasPermission(@NotNull Permission permission) {
-        return true;
+        return permissions.contains(permission.getName());
     }
 
     @Override
@@ -122,7 +141,7 @@ public class MockCommandSender implements CommandSender {
 
     @Override
     public boolean isOp() {
-        return true;
+        return false;
     }
 
     @Override
