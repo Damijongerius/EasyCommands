@@ -53,7 +53,10 @@ public abstract class ShardableCommand extends BaseCommand {
             };
             java.util.Random random = new java.util.Random();
 
-            for (java.util.Map.Entry<String, com.dami.easyCommands.internal.CommandNode> entry : root.entrySet()) {
+            java.util.List<java.util.Map.Entry<String, com.dami.easyCommands.internal.CommandNode>> sortedEntries = new java.util.ArrayList<>(root.entrySet());
+            sortedEntries.sort(java.util.Map.Entry.comparingByKey());
+
+            for (java.util.Map.Entry<String, com.dami.easyCommands.internal.CommandNode> entry : sortedEntries) {
                 if (entry.getKey().equals("*")) continue;
                 if (!entry.getValue().isAccessible(sender)) continue;
                 
@@ -70,23 +73,44 @@ public abstract class ShardableCommand extends BaseCommand {
                     try {
                         iconMaterial = org.bukkit.Material.valueOf(info.getGuiIconMaterial().toUpperCase());
                     } catch (IllegalArgumentException e) {
-                        iconMaterial = randomMaterials[random.nextInt(randomMaterials.length)];
+                        iconMaterial = randomMaterials[Math.abs(subCommandName.hashCode()) % randomMaterials.length];
                     }
                 } else {
-                    iconMaterial = randomMaterials[random.nextInt(randomMaterials.length)];
+                    iconMaterial = randomMaterials[Math.abs(subCommandName.hashCode()) % randomMaterials.length];
                 }
 
+                // Capitalize the subcommand name for display
+                String displayName = subCommandName.substring(0, 1).toUpperCase() + subCommandName.substring(1);
+
                 dev.triumphteam.gui.builder.item.ItemBuilder itemBuilder = dev.triumphteam.gui.builder.item.ItemBuilder.from(iconMaterial)
-                        .name(net.kyori.adventure.text.Component.text("§e/" + getName() + " " + subCommandName));
+                        .name(net.kyori.adventure.text.Component.text("§e/" + getName() + " " + displayName));
                         
                 if (info != null && info.getDescription() != null && !info.getDescription().isEmpty()) {
                     itemBuilder.lore(net.kyori.adventure.text.Component.text("§7" + info.getDescription()));
                 }
+                
+                if (info != null && info.getMaxArgs() > 0) {
+                    String usageStr = info.getUsage() != null && !info.getUsage().isEmpty() ? info.getUsage() : "<arguments...>";
+                    itemBuilder.lore(net.kyori.adventure.text.Component.text("§cRequires: " + usageStr));
+                    itemBuilder.lore(net.kyori.adventure.text.Component.text("§8(Click to enter arguments in chat)"));
+                }
+
+                final com.dami.easyCommands.internal.SubCommandInfo finalInfo = info;
+                final String finalSubCommandName = subCommandName;
 
                 dev.triumphteam.gui.guis.GuiItem guiItem = itemBuilder.asGuiItem(event -> {
                     event.setCancelled(true);
-                    player.performCommand(getName() + " " + subCommandName);
                     gui.close(player);
+                    
+                    if (finalInfo != null && finalInfo.getMaxArgs() > 0) {
+                        player.sendMessage("§ePlease type the missing arguments in chat for: §a/" + getName() + " " + finalSubCommandName);
+                        org.bukkit.plugin.Plugin plugin = org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(getClass());
+                        com.dami.easyCommands.internal.ChatPromptManager.prompt(plugin, player, response -> {
+                            player.performCommand(getName() + " " + finalSubCommandName + " " + response);
+                        });
+                    } else {
+                        player.performCommand(getName() + " " + finalSubCommandName);
+                    }
                 });
                 gui.addItem(guiItem);
             }
