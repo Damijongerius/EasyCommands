@@ -14,6 +14,8 @@ A powerful, cutting-edge command framework for Bukkit/Spigot/Paper plugins that 
 - 💬 **Interactive Prompts**: `EasyCommands.prompt(plugin, player, response -> ...)` safely intercepts chat and bounces execution back to the main thread.
 - ⚠️ **Global Exception Handlers**: Intercept exceptions globally and gracefully format errors for the player.
 - 📚 **Paginated Help Menus**: Automatically generates interactive, clickable help menus via the Adventure Kyori API!
+- 🖼️ **Auto-GUI Menus**: Turn your base command into an interactive Chest GUI with zero extra code.
+- 🧩 **Class-Based Subcommands**: Build massive, modular command systems without massive files.
 
 ---
 

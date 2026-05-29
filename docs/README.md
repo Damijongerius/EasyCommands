@@ -46,6 +46,7 @@ Welcome to the comprehensive documentation for the EasyCommands framework! This 
 - [Advanced Command Features](command-system.md#advanced-features)
 - [Permission-Based Tab Completion](tab-completion.md#permission-based-tab-completion)
 - [Class-Based Subcommands](class-based-subcommands.md)
+- [Auto-GUI Fallback Menus](auto-gui.md)
 
 #### Advanced
 - [Custom Subcommand Classes](class-based-subcommands.md#advanced-features)
