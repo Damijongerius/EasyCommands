@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Annotation to explicitly set a slot for an "auto gui" fallback menu.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface GuiSlot {
     int row() default -1;
     int col() default -1;

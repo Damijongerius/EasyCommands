@@ -31,7 +31,7 @@ public class CommandNode {
         commandNode.insertCommand(newPath, command);
     }
 
-    public boolean runSubCommand(String[] path, CommandSender sender, List<String> wildcards, MessageHandler messageHandler, String baseCommandName, String fullPath){
+    public boolean runSubCommand(String[] path, CommandSender sender, List<String> wildcards, MessageHandler messageHandler, String baseCommandName, String fullPath, com.dami.easyCommands.core.BaseCommand parentCommand){
         // Help check
         if (path.length > 0 && path[0].equalsIgnoreCase("help")) {
             int page = 1;
@@ -52,7 +52,7 @@ public class CommandNode {
             if(commandNode != null){
                 String[] newPath = new String[path.length - 1];
                 System.arraycopy(path, 1, newPath, 0, path.length - 1);
-                if (commandNode.runSubCommand(newPath, sender, new ArrayList<>(wildcards), messageHandler, baseCommandName, fullPath + " " + node)) {
+                if (commandNode.runSubCommand(newPath, sender, new ArrayList<>(wildcards), messageHandler, baseCommandName, fullPath + " " + node, parentCommand)) {
                     return true;
                 }
             } else {
@@ -62,7 +62,7 @@ public class CommandNode {
                     capturedWildcards.add(node);
                     String[] newPath = new String[path.length - 1];
                     System.arraycopy(path, 1, newPath, 0, path.length - 1);
-                    if (commandNode.runSubCommand(newPath, sender, capturedWildcards, messageHandler, baseCommandName, fullPath + " " + node)) {
+                    if (commandNode.runSubCommand(newPath, sender, capturedWildcards, messageHandler, baseCommandName, fullPath + " " + node, parentCommand)) {
                         return true;
                     }
                 } else {
@@ -83,6 +83,19 @@ public class CommandNode {
         if(subCommandInfo != null){
             subCommandInfo.run(sender, path, wildcards, messageHandler, baseCommandName, fullPath);
             return true;
+        }
+
+        // Check if we executed a directory subcommand (path is empty, no leaf command, but has children)
+        if (path.length == 0 && !nodes.isEmpty() && sender instanceof org.bukkit.entity.Player) {
+            if (parentCommand instanceof com.dami.easyCommands.core.ShardableCommand) {
+                com.dami.easyCommands.core.ShardableCommand shardable = (com.dami.easyCommands.core.ShardableCommand) parentCommand;
+                if (shardable.isAutoGuiEnabled()) {
+                    org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+                    String title = shardable.getAutoGuiTitle() != null ? shardable.getAutoGuiTitle() : shardable.getName() + " Commands";
+                    shardable.openCommandNodeGui(player, fullPath, title);
+                    return true;
+                }
+            }
         }
 
         return false;

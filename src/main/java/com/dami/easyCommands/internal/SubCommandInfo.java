@@ -7,7 +7,6 @@ import com.dami.easyCommands.annotations.GuiIcon;
 import com.dami.easyCommands.model.MessageKey;
 import com.dami.easyCommands.model.SenderType;
 import com.dami.easyCommands.model.ValidationException;
-import lombok.Getter;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -18,57 +17,101 @@ import java.util.Map;
 
 public class SubCommandInfo {
 
-    @Getter
     private final Method method;
     private final Object owner;
-
-    @Getter
     private final int weight;
-
-    @Getter
     private final String permission;
-
-    @Getter
     private final int maxArgs;
-
-    @Getter
     private final String[] aliases;
-
-    @Getter
     private final String description;
-
-    @Getter
     private final String usage;
-
-    @Getter
     private final SenderType senderType;
-
-    @Getter
     private final String guiIconMaterial;
-
-    @Getter
     private final int guiRow;
-
-    @Getter
     private final int guiCol;
-
-    @Getter
     private final String[] completions;
-
-    @Getter
     private final boolean isAsync;
-
-    @Getter
     private final int cooldownSeconds;
-
-    @Getter
     private final String cooldownBypassPerm;
-
-    @Getter
     private final String[] requires;
-
-    @Getter
     private final int confirmTimeout;
+    private final int requiredArgs;
+
+    public int getRequiredArgs() {
+        return requiredArgs;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
+
+    public Object getOwner() {
+        return owner;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public String getPermission() {
+        return permission;
+    }
+
+    public int getMaxArgs() {
+        return maxArgs;
+    }
+
+    public String[] getAliases() {
+        return aliases;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getUsage() {
+        return usage;
+    }
+
+    public SenderType getSenderType() {
+        return senderType;
+    }
+
+    public String getGuiIconMaterial() {
+        return guiIconMaterial;
+    }
+
+    public int getGuiRow() {
+        return guiRow;
+    }
+
+    public int getGuiCol() {
+        return guiCol;
+    }
+
+    public String[] getCompletions() {
+        return completions;
+    }
+
+    public boolean isAsync() {
+        return isAsync;
+    }
+
+    public int getCooldownSeconds() {
+        return cooldownSeconds;
+    }
+
+    public String getCooldownBypassPerm() {
+        return cooldownBypassPerm;
+    }
+
+    public String[] getRequires() {
+        return requires;
+    }
+
+    public int getConfirmTimeout() {
+        return confirmTimeout;
+    }
 
     public SubCommandInfo(Method method, Object owner, int weight, String permission, int maxArgs, 
                           String[] aliases, String description, String usage, SenderType senderType, String[] completions) {
@@ -96,12 +139,18 @@ public class SubCommandInfo {
         
         if (method.isAnnotationPresent(GuiIcon.class)) {
             this.guiIconMaterial = method.getAnnotation(GuiIcon.class).material();
+        } else if (method.getDeclaringClass().isAnnotationPresent(GuiIcon.class)) {
+            this.guiIconMaterial = method.getDeclaringClass().getAnnotation(GuiIcon.class).material();
         } else {
             this.guiIconMaterial = "";
         }
         
         if (method.isAnnotationPresent(com.dami.easyCommands.annotations.GuiSlot.class)) {
             com.dami.easyCommands.annotations.GuiSlot guiSlot = method.getAnnotation(com.dami.easyCommands.annotations.GuiSlot.class);
+            this.guiRow = guiSlot.row();
+            this.guiCol = guiSlot.col();
+        } else if (method.getDeclaringClass().isAnnotationPresent(com.dami.easyCommands.annotations.GuiSlot.class)) {
+            com.dami.easyCommands.annotations.GuiSlot guiSlot = method.getDeclaringClass().getAnnotation(com.dami.easyCommands.annotations.GuiSlot.class);
             this.guiRow = guiSlot.row();
             this.guiCol = guiSlot.col();
         } else {
@@ -151,6 +200,39 @@ public class SubCommandInfo {
         } else {
             this.confirmTimeout = 0;
         }
+
+        // Calculate required arguments
+        int reqCount = 0;
+        com.dami.easyCommands.annotations.SubCommand subAnn = method.getAnnotation(com.dami.easyCommands.annotations.SubCommand.class);
+        if (subAnn == null) {
+            subAnn = method.getDeclaringClass().getAnnotation(com.dami.easyCommands.annotations.SubCommand.class);
+        }
+        if (subAnn != null && subAnn.requiredArgs() != -1) {
+            reqCount = subAnn.requiredArgs();
+        } else if (method.getName().equals("mainCommand") && method.getParameterCount() == 2 && method.getParameterTypes()[1] == String[].class) {
+            reqCount = 0;
+        } else {
+            for (java.lang.reflect.Parameter param : method.getParameters()) {
+                Class<?> paramType = param.getType();
+                if (CommandSender.class.isAssignableFrom(paramType) || param.isAnnotationPresent(com.dami.easyCommands.annotations.Sender.class)) {
+                    continue;
+                }
+                if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Flag.class)) {
+                    continue;
+                }
+                if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Session.class)) {
+                    continue;
+                }
+                if (param.isAnnotationPresent(com.dami.easyCommands.annotations.Optional.class)) {
+                    continue;
+                }
+                if (paramType.isArray() && paramType.getComponentType() == String.class) {
+                    continue;
+                }
+                reqCount++;
+            }
+        }
+        this.requiredArgs = reqCount;
     }
 
     public void run(CommandSender commandSender, String[] args, List<String> wildcards, MessageHandler messageHandler, String baseCommandName, String fullPath){
@@ -211,6 +293,17 @@ public class SubCommandInfo {
                 }
             }
         } catch (ValidationException e) {
+            if (e.getCustomMessage() != null) {
+                net.kyori.adventure.text.Component component = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(e.getCustomMessage());
+                if (e.getHoverText() != null && !e.getHoverText().isEmpty()) {
+                    component = component.hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(e.getHoverText())));
+                }
+                if (e.getClickActionCommand() != null && !e.getClickActionCommand().isEmpty()) {
+                    component = component.clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand(e.getClickActionCommand()));
+                }
+                commandSender.sendMessage(component);
+                return;
+            }
             Map<String, String> mergedPlaceholders = new HashMap<>(placeholders);
             if (e.getPlaceholders() != null) {
                 mergedPlaceholders.putAll(e.getPlaceholders());
@@ -278,7 +371,7 @@ public class SubCommandInfo {
             };
 
             if (isAsync) {
-                org.bukkit.plugin.Plugin plugin = org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(owner.getClass());
+                org.bukkit.plugin.Plugin plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("EpicKingdom");
                 org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, execution);
             } else {
                 execution.run();

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Annotation to define a custom GUI icon for an "auto gui" fallback menu.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface GuiIcon {
     /**
      * The Material name as a string (e.g., "STONE", "DIAMOND_SWORD").

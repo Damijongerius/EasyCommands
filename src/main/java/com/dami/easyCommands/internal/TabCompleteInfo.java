@@ -1,6 +1,5 @@
 package com.dami.easyCommands.internal;
 
-import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Method;
@@ -11,10 +10,8 @@ public class TabCompleteInfo {
     private final Method method;
     private final Object owner;
 
-    @Getter
     private final String permission;
 
-    @Getter
     private final int priority;
 
     public TabCompleteInfo(Method method, Object owner, String permission, int priority) {
@@ -22,6 +19,14 @@ public class TabCompleteInfo {
         this.owner = owner;
         this.permission = permission;
         this.priority = priority;
+    }
+
+    public String getPermission() {
+        return permission;
+    }
+
+    public int getPriority() {
+        return priority;
     }
 
     public List<String> getTabComplete(CommandSender sender, String[] args, List<String> wildcards){

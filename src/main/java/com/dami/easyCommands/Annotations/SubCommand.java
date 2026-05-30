@@ -66,4 +66,9 @@ public @interface SubCommand {
      * The type of sender that can use this command
      */
     SenderType senderType() default SenderType.ANY;
+
+    /**
+     * The number of required arguments. Defaults to -1 (auto-detect or 0 for mainCommand).
+     */
+    int requiredArgs() default -1;
 }

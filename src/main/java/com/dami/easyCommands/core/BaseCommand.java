@@ -7,8 +7,6 @@ import com.dami.easyCommands.internal.TabCompleteInfo;
 import com.dami.easyCommands.internal.SubCommandInfo;
 import com.dami.easyCommands.model.MessageKey;
 import com.dami.easyCommands.util.StringUtil;
-import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -26,11 +24,25 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
 
     protected final Map<String, CommandNode> root = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    @Getter @Setter
     protected String description = "";
 
-    @Getter @Setter
     protected MessageHandler messageHandler = new MessageHandler.DefaultMessageHandler();
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public MessageHandler getMessageHandler() {
+        return messageHandler;
+    }
+
+    public void setMessageHandler(MessageHandler messageHandler) {
+        this.messageHandler = messageHandler;
+    }
 
     protected BaseCommand() {
         // Automatically initialize if name is already available (from subclass)
@@ -151,7 +163,7 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
             if (commandNode != null) {
                 String[] newArgs = new String[args.length - 1];
                 arraycopy(args, 1, newArgs, 0, args.length - 1);
-                if (commandNode.runSubCommand(newArgs, sender, new ArrayList<>(wildcards), messageHandler, getName(), firstArg)) {
+                if (commandNode.runSubCommand(newArgs, sender, new ArrayList<>(wildcards), messageHandler, getName(), firstArg, this)) {
                     return true;
                 }
             } else {
@@ -161,7 +173,7 @@ public abstract class BaseCommand implements TabExecutor, ICommand {
                     capturedWildcards.add(firstArg);
                     String[] newArgs = new String[args.length - 1];
                     arraycopy(args, 1, newArgs, 0, args.length - 1);
-                    if (commandNode.runSubCommand(newArgs, sender, capturedWildcards, messageHandler, getName(), firstArg)) {
+                    if (commandNode.runSubCommand(newArgs, sender, capturedWildcards, messageHandler, getName(), firstArg, this)) {
                         return true;
                     }
                 } else {
